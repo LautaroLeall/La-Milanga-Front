@@ -1,163 +1,224 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import api from '../services/api';
-import { ShoppingCart, CheckCircle, Trash2, Plus, Minus, Search } from 'lucide-react';
+import Navbar from '../components/Navbar';
+import Spinner from '../components/Spinner';
+import { ShoppingCart, Plus, Minus, Trash2, CheckCircle, Search } from 'lucide-react';
+import '../styles/pages/POS.css';
+import { AuthContext } from '../context/AuthContext';
+import { showAlert } from '../utils/alert';
+
+const CATEGORIES = ['Todos', 'Bebidas', 'Entradas / Minutas', 'Platos Principales', 'Pizzas', 'Sándwiches', 'Helados', 'Otro'];
 
 const POS = () => {
+  const { user } = useContext(AuthContext);
   const [menu, setMenu] = useState([]);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [checkoutSuccess, setCheckoutSuccess] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('Todos');
+
+  const fetchMenu = () => {
+    setLoading(true);
+    api.get('/stock/menu')
+      .then(res => setMenu(res.data))
+      .catch(() => { })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
-    fetchMenu();
+    Promise.resolve().then(() => fetchMenu());
   }, []);
-
-  const fetchMenu = async () => {
-    try {
-      const res = await api.get('/stock/menu');
-      setMenu(res.data);
-    } catch (error) {
-      console.error('Error fetching menu', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const addToCart = (product) => {
     setCart(prev => {
-      const existing = prev.find(item => item.productId === product._id);
+      const existing = prev.find(i => i.productId === product._id);
       if (existing) {
-        if (existing.quantity >= product.stock) return prev; // Cannot exceed stock
-        return prev.map(item => 
-          item.productId === product._id ? { ...item, quantity: item.quantity + 1 } : item
-        );
+        if (existing.quantity >= product.stock) return prev;
+        return prev.map(i => i.productId === product._id ? { ...i, quantity: i.quantity + 1 } : i);
       }
       return [...prev, { productId: product._id, name: product.name, price: product.price, quantity: 1, maxStock: product.stock }];
     });
   };
 
-  const removeFromCart = (productId) => {
-    setCart(prev => prev.filter(item => item.productId !== productId));
+  const updateQty = (productId, delta) => {
+    setCart(prev =>
+      prev.map(i => {
+        if (i.productId !== productId) return i;
+        const q = i.quantity + delta;
+        if (q <= 0) return null;
+        if (q > i.maxStock) return i;
+        return { ...i, quantity: q };
+      }).filter(Boolean)
+    );
   };
 
-  const updateQuantity = (productId, delta) => {
-    setCart(prev => prev.map(item => {
-      if (item.productId === productId) {
-        const newQ = item.quantity + delta;
-        if (newQ > 0 && newQ <= item.maxStock) return { ...item, quantity: newQ };
-        if (newQ <= 0) return null;
-      }
-      return item;
-    }).filter(Boolean));
-  };
+  const removeFromCart = (productId) => setCart(prev => prev.filter(i => i.productId !== productId));
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
-    try {
-      await api.post('/ventas', {
-        items: cart.map(c => ({ productId: c.productId, quantity: c.quantity }))
-      });
-      setCart([]);
-      setCheckoutSuccess(true);
-      fetchMenu(); // Refresh stock
-      setTimeout(() => setCheckoutSuccess(false), 3000);
-    } catch (error) {
-      alert(error.response?.data?.message || 'Error al procesar la venta');
+
+    const result = await showAlert.fire({
+      title: '¿Confirmar venta?',
+      text: `Se procesará un ticket por $${total.toLocaleString()}`,
+      icon: 'info',
+      iconColor: '#22c55e',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cobrar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#f97316',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await api.post('/ventas', { items: cart.map(c => ({ productId: c.productId, quantity: c.quantity })) });
+        setCart([]);
+        setSuccess(true);
+        fetchMenu();
+        setTimeout(() => setSuccess(false), 3500);
+      } catch (err) {
+        showAlert.fire('Error', err.response?.data?.message || 'Error al procesar la venta', 'error');
+      }
     }
   };
 
-  const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const filteredMenu = menu.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const total = cart.reduce((acc, i) => acc + i.price * i.quantity, 0);
+  const totalItems = cart.reduce((acc, i) => acc + i.quantity, 0);
+
+  const filteredMenu = menu.filter(p => {
+    const matchCat = category === 'Todos' || p.category === category;
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    return matchCat && matchSearch;
+  });
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex">
-      {/* Menú Section */}
-      <div className="flex-1 p-6 flex flex-col h-screen overflow-hidden">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Punto de Venta</h1>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input 
-              type="text" 
-              placeholder="Buscar producto..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-xl focus:ring-2 focus:ring-orange-500 focus:outline-none"
-            />
+    <div className="pos-layout">
+      <Navbar />
+
+      {/* Panel Catálogo */}
+      <div className="pos-catalog">
+        {/* Barra superior */}
+        <div className="pos-topbar">
+          <div className="pos-topbar-row">
+            <div>
+              <h2 className="font-display pos-title">
+                Punto de Venta
+              </h2>
+              <p className="pos-subtitle">
+                Hola, <span className="pos-user-name">{user?.username}</span>
+              </p>
+            </div>
+
+            {/* Buscador */}
+            <div className="pos-search-wrap">
+              <Search size={15} className="pos-search-icon" />
+              <input
+                type="text"
+                placeholder="Buscar producto..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="field-input pos-search-input"
+              />
+            </div>
+          </div>
+
+          {/* Tabs de categoría */}
+          <div className="pos-cats">
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`cat-btn${category === cat ? ' active' : ''}`}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-6">
+        {/* Grid de productos */}
+        <div className="product-grid">
           {loading ? (
-             <p className="col-span-full text-center text-gray-500 mt-10">Cargando menú...</p>
+            <div className="product-grid-full"><Spinner /></div>
           ) : filteredMenu.length === 0 ? (
-             <p className="col-span-full text-center text-gray-500 mt-10">No hay productos disponibles.</p>
-          ) : (
-            filteredMenu.map(product => (
-              <button 
-                key={product._id} 
-                onClick={() => addToCart(product)}
-                className="bg-gray-800 border border-gray-700 hover:border-orange-500 rounded-xl p-4 flex flex-col items-start justify-between h-32 transition-all active:scale-95 text-left"
-              >
-                <div className="w-full">
-                  <span className="text-xs font-semibold bg-gray-900 px-2 py-1 rounded text-gray-400 mb-2 inline-block">{product.category}</span>
-                  <h3 className="font-bold text-lg leading-tight line-clamp-2">{product.name}</h3>
-                </div>
-                <div className="flex justify-between w-full items-end mt-2">
-                  <span className="text-green-400 font-bold">${product.price}</span>
-                  <span className="text-xs text-gray-500">Stock: {product.stock}</span>
-                </div>
-              </button>
-            ))
-          )}
+            <div className="product-grid-full">
+              <div className="empty-state anim-fade">
+                <p className="empty-state-text">No hay productos disponibles</p>
+              </div>
+            </div>
+          ) : filteredMenu.map((product) => (
+            <button
+              key={product._id}
+              onClick={() => addToCart(product)}
+              className="product-card anim-page"
+            >
+              <span className="product-cat-label">{product.category}</span>
+              <h3 className="product-name">{product.name}</h3>
+              <div className="product-footer">
+                <span className="product-price">${product.price.toLocaleString()}</span>
+                <span className={`stock-badge ${product.stock > 10 ? 'ok' : 'low'}`}>
+                  {product.stock} disp.
+                </span>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Cart Section */}
-      <div className="w-96 bg-gray-800 border-l border-gray-700 flex flex-col h-screen">
-        <div className="p-6 border-b border-gray-700 flex items-center justify-between">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <ShoppingCart className="text-orange-500" /> Carrito
+      {/* Panel Carrito */}
+      <div className="cart-panel">
+        <div className="cart-header">
+          <h2 className="font-display cart-title">
+            <ShoppingCart size={19} className="cart-title-icon" />
+            Carrito
           </h2>
-          {cart.length > 0 && (
-            <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-              {cart.reduce((a,c) => a + c.quantity, 0)} items
+          {totalItems > 0 && (
+            <span className="cart-badge">
+              {totalItems}
             </span>
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {checkoutSuccess && (
-            <div className="bg-green-500/20 border border-green-500 text-green-400 p-4 rounded-xl flex items-center gap-3 animate-pulse">
-              <CheckCircle size={24} />
-              <div className="flex-1">
-                <p className="font-bold">¡Venta Exitosa!</p>
-                <p className="text-sm">El ticket ha sido registrado.</p>
+        {/* Items */}
+        <div className="cart-items">
+          {success && (
+            <div className="anim-toast pos-toast-success">
+              <CheckCircle size={18} />
+              <div>
+                <p className="toast-title">¡Venta registrada!</p>
+                <p className="toast-subtitle">El ticket fue procesado.</p>
               </div>
             </div>
           )}
 
-          {cart.length === 0 && !checkoutSuccess ? (
-             <div className="h-full flex flex-col items-center justify-center text-gray-500 space-y-4">
-               <ShoppingCart size={48} className="opacity-20" />
-               <p>El carrito está vacío</p>
-             </div>
+          {cart.length === 0 && !success ? (
+            <div className="empty-state anim-fade cart-empty-state">
+              <div className="empty-icon-wrap">
+                <ShoppingCart size={32} className="cart-empty-icon" />
+              </div>
+              <p className="empty-title cart-empty-title">El carrito está vacío</p>
+              <p className="empty-sub cart-empty-sub">Hacé clic en un producto para agregarlo</p>
+            </div>
           ) : (
             cart.map(item => (
-              <div key={item.productId} className="bg-gray-900 border border-gray-700 rounded-xl p-3 flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <h4 className="font-bold pr-2">{item.name}</h4>
-                  <button onClick={() => removeFromCart(item.productId)} className="text-gray-500 hover:text-red-500 transition-colors">
-                    <Trash2 size={18} />
+              <div key={item.productId} className="cart-item anim-scale">
+                <div className="cart-item-top">
+                  <p className="cart-item-name">{item.name}</p>
+                  <button
+                    onClick={() => removeFromCart(item.productId)}
+                    className="cart-item-remove"
+                  >
+                    <Trash2 size={15} />
                   </button>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-green-400 font-bold">${item.price * item.quantity}</span>
-                  <div className="flex items-center gap-3 bg-gray-800 rounded-lg border border-gray-700">
-                    <button onClick={() => updateQuantity(item.productId, -1)} className="p-1 hover:text-orange-500"><Minus size={16} /></button>
-                    <span className="w-4 text-center font-bold text-sm">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.productId, 1)} className="p-1 hover:text-orange-500"><Plus size={16} /></button>
+                <div className="cart-item-bottom">
+                  <span className="cart-item-price">
+                    ${(item.price * item.quantity).toLocaleString()}
+                  </span>
+                  <div className="qty-ctrl">
+                    <button onClick={() => updateQty(item.productId, -1)} className="qty-btn"><Minus size={13} /></button>
+                    <span className="qty-val">{item.quantity}</span>
+                    <button onClick={() => updateQty(item.productId, 1)} className="qty-btn"><Plus size={13} /></button>
                   </div>
                 </div>
               </div>
@@ -165,16 +226,15 @@ const POS = () => {
           )}
         </div>
 
-        <div className="p-6 border-t border-gray-700 bg-gray-900">
-          <div className="flex justify-between items-end mb-6">
-            <span className="text-gray-400 font-medium">Total a cobrar</span>
-            <span className="text-4xl font-bold text-white">${total}</span>
+        {/* Footer */}
+        <div className="cart-footer">
+          <div className="cart-total-row">
+            <span className="cart-total-label">Total a cobrar</span>
+            <span className="font-display cart-total-value">
+              ${total.toLocaleString()}
+            </span>
           </div>
-          <button 
-            onClick={handleCheckout}
-            disabled={cart.length === 0}
-            className="w-full py-4 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2"
-          >
+          <button onClick={handleCheckout} disabled={cart.length === 0} className="btn-checkout">
             Cobrar Venta
           </button>
         </div>

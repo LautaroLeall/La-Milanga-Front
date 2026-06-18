@@ -1,94 +1,107 @@
-import React, { useState, useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChefHat, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Utensils } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
+import '../styles/pages/Login.css';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [form, setForm] = useState({ username: '', password: '' });
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setIsLoading(true);
-
-    const result = await login(username, password);
+    setLoading(true);
+    setError('');
+    const result = await login(form.username, form.password);
     if (result.success) {
-      navigate('/dashboard'); // Redirige por defecto (luego ajustaremos según el rol)
+      navigate('/dashboard');
     } else {
-      setError(result.message);
+      setError(result.message || 'Credenciales incorrectas');
+      setLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700">
-        
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/20 text-orange-500 mb-4">
-            <ChefHat size={32} />
+    <div className="login-container">
+      <div className="login-box anim-page">
+
+        {/* Logo */}
+        <div className="login-header">
+          <div className="login-logo-wrap">
+            <Utensils size={30} className="login-logo-icon" />
           </div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">La Milanga</h2>
-          <p className="text-gray-400 mt-2">Ingresa tus credenciales para continuar</p>
+          <h1 className="font-display login-title">
+            La Milanga
+          </h1>
+          <p className="login-subtitle">Sistema de Gestión Interna</p>
         </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm text-center">
-            {error}
-          </div>
-        )}
+        {/* Formulario */}
+        <form onSubmit={handleSubmit} className="login-form">
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Usuario</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-                <User size={18} />
-              </div>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                className="block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                placeholder="ej: cajero1"
-              />
+          {error && (
+            <div className="anim-toast login-error-toast">
+              {error}
             </div>
+          )}
+
+          {/* Usuario */}
+          <div className="form-group">
+            <label className="field-label">Usuario o Email</label>
+            <input
+              type="text"
+              autoComplete="username"
+              placeholder="admin / tu@email.com"
+              value={form.username}
+              onChange={e => setForm({ ...form, username: e.target.value })}
+              required
+              className="field-input"
+            />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Contraseña</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
-                <Lock size={18} />
-              </div>
+          {/* Contraseña */}
+          <div className="form-group-last">
+            <label className="field-label">Contraseña</label>
+            <div className="input-wrap">
               <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="block w-full pl-10 pr-3 py-3 border border-gray-700 rounded-xl bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                type={showPass ? 'text' : 'password'}
+                autoComplete="current-password"
                 placeholder="••••••••"
+                value={form.password}
+                onChange={e => setForm({ ...form, password: e.target.value })}
+                required
+                className="field-input input-with-icon"
               />
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                className="password-toggle"
+              >
+                {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
+          {/* Botón */}
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            disabled={loading}
+            className="btn-primary btn-login"
           >
-            {isLoading ? 'Verificando...' : 'Entrar al Sistema'}
+            {loading ? (
+              <>
+                <div className="spinner spinner-small" />
+                Ingresando...
+              </>
+            ) : (
+              'Ingresar al sistema'
+            )}
           </button>
         </form>
-
       </div>
     </div>
   );
