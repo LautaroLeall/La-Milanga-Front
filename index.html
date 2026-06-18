@@ -1,13 +1,44 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>temp-app</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/icon-page.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icon-page.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO primario -->
+  <title>La Milanga — Sistema de Gestión</title>
+  <meta name="description" content="Sistema de gestión interno de La Milanga. Control de ventas, inventario y caja." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="author" content="La Milanga" />
+  <meta name="theme-color" content="#0d0d0d" />
+
+  <!-- Open Graph (por si se comparte el link) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="La Milanga — Sistema de Gestión" />
+  <meta property="og:description" content="Sistema de gestión interno: ventas, caja e inventario." />
+  <!-- <meta property="og:url" content="https://la-milanga.vercel.app" /> -->
+
+  <!-- PWA / iOS -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="La Milanga" />
+
+  <!-- Tipografías — preconnect primero, luego carga -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@700;800&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
