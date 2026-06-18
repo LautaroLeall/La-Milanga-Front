@@ -1,0 +1,76 @@
+/* SWEETALERT CUSTOMIZATIONS (DARK THEME) */
+.swal-dark-popup {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl) !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5) !important;
+  padding: 24px !important;
+}
+
+.swal-dark-title {
+  font-family: 'Sora', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 22px !important;
+  color: white !important;
+  margin-bottom: 8px !important;
+}
+
+.swal-dark-html {
+  font-size: 14px !important;
+  color: #a3a3a3 !important;
+  margin-bottom: 24px !important;
+}
+
+.swal-btn-confirm,
+.swal-btn-cancel {
+  border-radius: var(--radius-md) !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  padding: 12px 24px !important;
+  transition: transform 0.1s, background 0.15s !important;
+}
+
+.swal-btn-confirm:active,
+.swal-btn-cancel:active {
+  transform: scale(0.95);
+}
+
+.swal-btn-cancel {
+  border: 1px solid var(--border) !important;
+}
+
+.swal-btn-cancel:hover {
+  background: #444 !important;
+}
+
+/* Animaciones personalizadas adicionales (opcional, swal ya tiene, pero reforzamos) */
+@keyframes swalScaleUp {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes swalScaleDown {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.anim-scale-up {
+  animation: swalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.anim-scale-down {
+  animation: swalScaleDown 0.2s ease-in forwards !important;
+}
