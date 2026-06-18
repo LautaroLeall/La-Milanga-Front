@@ -81,6 +81,7 @@
   display: grid;
   grid-template-columns: 1fr 360px;
   gap: 20px;
+  align-items: start;
 }
 
 .chart-title {
