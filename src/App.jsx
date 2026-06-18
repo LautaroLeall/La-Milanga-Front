@@ -1,9 +1,10 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
-import { AuthProvider, AuthContext } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import StockManager from './pages/StockManager';
+import POS from './pages/POS';
 
 // Componente placeholder para el Dashboard
 const DashboardPlaceholder = () => (
@@ -13,6 +14,9 @@ const DashboardPlaceholder = () => (
       <p className="text-gray-400">Sesión iniciada con éxito. Selecciona un módulo:</p>
     </div>
     <div className="flex gap-4">
+      <Link to="/pos" className="px-6 py-3 bg-orange-600 hover:bg-orange-700 border border-orange-500 rounded-xl transition-colors font-bold">
+        🛒 Punto de Venta (Caja)
+      </Link>
       <Link to="/stock" className="px-6 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors">
         📦 Gestión de Inventario
       </Link>
@@ -43,6 +47,11 @@ function App() {
             <Route path="/dashboard" element={<DashboardPlaceholder />} />
           </Route>
           
+          {/* Rutas Protegidas (Admin y Cajero) */}
+          <Route element={<ProtectedRoute allowedRoles={['Admin', 'Cajero']} />}>
+            <Route path="/pos" element={<POS />} />
+          </Route>
+
           {/* Rutas Protegidas (Admin y Stock) */}
           <Route element={<ProtectedRoute allowedRoles={['Admin', 'Stock']} />}>
             <Route path="/stock" element={<StockManager />} />
