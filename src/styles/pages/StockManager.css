@@ -1,0 +1,140 @@
+/* TABLAS DE INVENTARIO */
+.stock-main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.stock-header-flex {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.table-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  padding: 14px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.th-left {
+  text-align: left;
+}
+
+.th-center {
+  text-align: center;
+}
+
+.th-right {
+  text-align: right;
+}
+
+.data-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.5);
+  vertical-align: middle;
+}
+
+.td-center {
+  text-align: center;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr {
+  transition: background 0.12s;
+}
+
+.data-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.product-list-name {
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0;
+}
+
+.product-list-name-mb {
+  margin-bottom: 3px;
+}
+
+.product-list-desc {
+  font-size: 12px;
+  color: #555;
+}
+
+.product-list-price {
+  color: #f97316;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* Acciones de tabla */
+.action-btns {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.action-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+}
+
+.action-btn:active {
+  transform: scale(0.9);
+}
+
+.action-btn.edit:hover {
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--accent);
+}
+
+.action-btn.delete:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+/* Modal text */
+.delete-modal-text {
+  color: #a3a3a3;
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.delete-modal-strong {
+  color: white;
+}

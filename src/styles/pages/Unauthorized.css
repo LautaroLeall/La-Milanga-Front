@@ -1,0 +1,34 @@
+/* UNAUTHORIZED PAGE (403) */
+.unauthorized-container {
+  min-height: 100vh;
+  background-color: #0d0d0d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.unauthorized-code {
+  font-family: 'Sora', sans-serif;
+  font-size: 72px;
+  font-weight: 800;
+  color: #f97316;
+  line-height: 1;
+}
+
+.unauthorized-desc {
+  color: #a3a3a3;
+  font-size: 15px;
+}
+
+.unauthorized-link {
+  color: #f97316;
+  font-size: 14px;
+  margin-top: 8px;
+  text-decoration: none;
+}
+
+.unauthorized-link:hover {
+  text-decoration: underline;
+}
